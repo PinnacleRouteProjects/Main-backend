@@ -37,6 +37,9 @@ const handleContactForm = async (req, res) => {
       }
 
     try {
+        console.log('Token received:', token?.substring(0, 50) + '...');
+        console.log('Secret key:', process.env.RECAPTCHA_SECRET?.substring(0, 10) + '...');
+        
         const response = await axios.post(
           `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${token}`
         );
