@@ -41,9 +41,9 @@ const handleContactForm = async (req, res) => {
           `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${token}`
         );
 
-        // if (!response.data.success) {
-        //   return res.status(400).json({ error: 'reCAPTCHA verification failed' });
-        // }
+        if (!response.data.success) {
+          return res.status(400).json({ error: 'reCAPTCHA verification failed' });
+        }
 
         const mailResult = await sendMail({ name, email, message, phone });
         console.log('Email send result:', mailResult);
