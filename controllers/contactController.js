@@ -31,23 +31,31 @@ const sendMail = async ({ name, email, message, phone }) => {
 
 const handleContactForm = async (req, res) => {
     const { name, email, message, phone, token } = req.body;
+    const recaptchaSecret = process.env.RECAPTCHA_SECRET;
 
       if (!name || !email || !message || !token) {
         return res.status(400).json({ error: 'All fields including reCAPTCHA are required' });
       }
 
+      if (!recaptchaSecret) {
+        console.error('RECAPTCHA_SECRET is not configured');
+        return res.status(500).json({ error: 'Server reCAPTCHA not configured' });
+      }
+
     try {
-        console.log('Token received:', token?.substring(0, 50) + '...');
-        console.log('Secret key:', process.env.RECAPTCHA_SECRET?.substring(0, 10) + '...');
+        console.log('reCAPTCHA token received');
         
         const response = await axios.post(
-          `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.RECAPTCHA_SECRET}&response=${token}`
+          `https://www.google.com/recaptcha/api/siteverify?secret=${recaptchaSecret}&response=${token}`
         );
 
         console.log('reCAPTCHA response:', response.data);
 
         if (!response.data.success) {
-          return res.status(400).json({ error: 'reCAPTCHA verification failed', details: response.data });
+          return res.status(400).json({
+            error: 'reCAPTCHA verification failed',
+            errorCodes: response.data['error-codes'] || []
+          });
         }
 
         const mailResult = await sendMail({ name, email, message, phone });
