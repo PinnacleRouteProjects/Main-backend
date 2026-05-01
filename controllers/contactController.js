@@ -4,17 +4,25 @@ require('dotenv').config();
 
 
 const sendMail = async ({ name, email, message, phone }) => {
+  const emailUser = process.env.EMAIL_USER;
+  const emailPassword = process.env.GMAIL_APP_PASSWORD || process.env.EMAIL_PASS;
+  const toEmail = process.env.TO_EMAIL;
+
+  if (!emailUser || !emailPassword || !toEmail) {
+    throw new Error('Email service is not configured (EMAIL_USER, TO_EMAIL, and GMAIL_APP_PASSWORD or EMAIL_PASS are required)');
+  }
+
   const transporter = nodemailer.createTransport({
     service: "gmail", // IMPORTANT
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD, // use correct env name
+      user: emailUser,
+      pass: emailPassword,
     },
   });
 
   const mailOptions = {
-    from: `"Website Contact" <${process.env.EMAIL_USER}>`,
-    to: process.env.TO_EMAIL,
+    from: `"Website Contact" <${emailUser}>`,
+    to: toEmail,
     replyTo: email,
     subject: `New Contact Form By ${name}`,
     html: `
@@ -64,7 +72,7 @@ const handleContactForm = async (req, res) => {
         res.status(200).json({ success: true, message: 'Email Sent!' });
     } catch (error) {
         console.error('Error in contact API:', error);
-        res.status(500).json({ error: 'Something went wrong' });
+      res.status(500).json({ error: 'Something went wrong', details: error.message });
     }
     };
 
