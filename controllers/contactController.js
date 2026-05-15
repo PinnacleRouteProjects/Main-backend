@@ -51,11 +51,12 @@ const sendMail = async ({ name, email, phone, company, website, projectType, bud
 };
 
 const handleContactForm = async (req, res) => {
-    const { name, email, phone, company, website, projectType, budgetRange, timeline, mainBusinessChallenge, token } = req.body;
+    const { name, email, phone, company, website, projectType, budgetRange, timeline, mainBusinessChallenge, message, token } = req.body;
     const recaptchaSecret = process.env.RECAPTCHA_SECRET;
 
-    if (!name || !email || !mainBusinessChallenge || !token) {
-      return res.status(400).json({ error: 'Name, email, main business challenge, and reCAPTCHA are required' });
+    // Accept either `mainBusinessChallenge` or `message` from client
+    if (!name || !email || !(mainBusinessChallenge || message) || !token) {
+      return res.status(400).json({ error: 'Name, email, main business challenge (or message), and reCAPTCHA are required' });
     }
 
     if (!recaptchaSecret) {
@@ -79,7 +80,8 @@ const handleContactForm = async (req, res) => {
           });
         }
 
-        const mailResult = await sendMail({ name, email, phone, company, website, projectType, budgetRange, timeline, mainBusinessChallenge });
+        const finalMainBusinessChallenge = mainBusinessChallenge || message;
+        const mailResult = await sendMail({ name, email, phone, company, website, projectType, budgetRange, timeline, mainBusinessChallenge: finalMainBusinessChallenge });
         console.log('Email send result:', mailResult);
 
         res.status(200).json({ success: true, message: 'Strategy session request sent!' });
